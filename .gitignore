@@ -1,0 +1,17 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+.terraform.lock.hcl
+
+# Function build artifacts
+function.zip
+function/node_modules/
+
+# OS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/

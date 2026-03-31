@@ -1,0 +1,53 @@
+name: Validate & Parity Check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9"
+
+      - name: Terraform fmt
+        run: terraform fmt -check
+
+      - name: Terraform init
+        run: terraform init -backend=false
+
+      - name: Terraform validate
+        run: terraform validate
+
+  parity:
+    name: Parity Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Sync contract from npm
+        run: |
+          TMP=$(mktemp -d)
+          cd "$TMP"
+          npm pack @justworkflowit/cdk-constructs --quiet 2>/dev/null || true
+          if ls justworkflowit-cdk-constructs-*.tgz 1>/dev/null 2>&1; then
+            tar xzf justworkflowit-cdk-constructs-*.tgz
+            if [ -f package/resource-contract.json ]; then
+              cp package/resource-contract.json "$GITHUB_WORKSPACE/resource-contract.json"
+              echo "Synced contract from npm"
+            fi
+          fi
+          rm -rf "$TMP"
+
+      - name: Validate parity
+        run: node scripts/validate-parity.js gcp

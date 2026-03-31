@@ -1,0 +1,129 @@
+{
+  "version": "1.0.0",
+  "description": "Defines the cloud-agnostic resource contract that all JustWorkflowIt infrastructure modules must satisfy. The CDK constructs package is the source of truth.",
+  "inputs": {
+    "disambiguator": {
+      "type": "string",
+      "required": true,
+      "description": "Unique identifier to differentiate multiple module instances in the same account/project"
+    },
+    "organization_id": {
+      "type": "string",
+      "required": true,
+      "description": "JustWorkflowIt organization ID (UUID)"
+    },
+    "workflow_definitions": {
+      "type": "list(string)",
+      "required": true,
+      "description": "Array of JSON-stringified workflow definitions to deploy"
+    },
+    "ignore_deployer_failures": {
+      "type": "bool",
+      "required": false,
+      "default": false,
+      "description": "If true, module deployment won't fail if workflow registration errors"
+    },
+    "lambda_arns": {
+      "type": "list(string)",
+      "required": false,
+      "default": [],
+      "cloud": "aws",
+      "description": "AWS Lambda function ARNs to grant invoke permissions to"
+    },
+    "sns_topic_arns": {
+      "type": "list(string)",
+      "required": false,
+      "default": [],
+      "cloud": "aws",
+      "description": "AWS SNS topic ARNs to grant publish permissions to"
+    },
+    "sqs_queue_arns": {
+      "type": "list(string)",
+      "required": false,
+      "default": [],
+      "cloud": "aws",
+      "description": "AWS SQS queue ARNs to grant send message permissions to"
+    },
+    "cloud_function_urls": {
+      "type": "list(string)",
+      "required": false,
+      "default": [],
+      "cloud": "gcp",
+      "description": "GCP Cloud Function URLs to grant invoke permissions to"
+    },
+    "pubsub_topic_ids": {
+      "type": "list(string)",
+      "required": false,
+      "default": [],
+      "cloud": "gcp",
+      "description": "GCP Pub/Sub topic IDs to grant publish permissions to"
+    }
+  },
+  "outputs": {
+    "execution_role_arn_or_id": {
+      "description": "ARN (AWS) or email (GCP) of the role/service account for JustWorkflowIt to assume"
+    }
+  },
+  "resources": {
+    "auth_secret": {
+      "description": "Secret storing the JustWorkflowIt API auth token",
+      "properties": {
+        "path": "/justworkflowit/api/authToken",
+        "initial_value": "REPLACE_ME_WITH_JUST_WORKFLOW_IT_AUTH_TOKEN"
+      },
+      "terraform_resource_types": {
+        "aws": "aws_secretsmanager_secret",
+        "gcp": "google_secret_manager_secret"
+      }
+    },
+    "definition_storage": {
+      "description": "Object storage bucket for workflow definition JSON files",
+      "properties": {
+        "encryption": true,
+        "no_public_access": true,
+        "auto_cleanup_on_destroy": true,
+        "enforce_ssl": true
+      },
+      "terraform_resource_types": {
+        "aws": "aws_s3_bucket",
+        "gcp": "google_storage_bucket"
+      }
+    },
+    "definition_deployer": {
+      "description": "Serverless function that registers workflows via the JustWorkflowIt API on deployment",
+      "properties": {
+        "runtime": "nodejs24",
+        "timeout_seconds": 300,
+        "triggered_on_deploy": true,
+        "env_vars": [
+          "AUTH_SECRET_NAME",
+          "ORGANIZATION_ID",
+          "API_BASE_URL",
+          "DEFINITION_BUCKET",
+          "DEFINITION_KEYS_JSON",
+          "IGNORE_FAILURES"
+        ]
+      },
+      "terraform_resource_types": {
+        "aws": "aws_lambda_function",
+        "gcp": "google_cloudfunctions2_function"
+      }
+    },
+    "execution_role": {
+      "description": "Cross-account/project role for JustWorkflowIt backend to assume when executing workflow steps",
+      "properties": {
+        "trusted_principal": "JustWorkflowIt production environment",
+        "external_id": "organization_id",
+        "conditional_permissions": [
+          "invoke_function",
+          "publish_message",
+          "send_queue_message"
+        ]
+      },
+      "terraform_resource_types": {
+        "aws": "aws_iam_role",
+        "gcp": "google_service_account"
+      }
+    }
+  }
+}
