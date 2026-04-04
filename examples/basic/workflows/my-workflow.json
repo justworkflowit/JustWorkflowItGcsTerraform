@@ -1,0 +1,19 @@
+{
+  "name": "my-workflow",
+  "steps": {
+    "process-data": {
+      "integrationDetails": {
+        "type": "/justworkflowit/gcp/cloudfunction",
+        "config": {
+          "projectId": "my-gcp-project",
+          "region": "us-central1",
+          "functionUrl": "https://us-central1-my-gcp-project.cloudfunctions.net/process-data",
+          "workloadIdentityPoolProvider": "projects/123456789/locations/global/workloadIdentityPools/justworkflowit-prod/providers/justworkflowit-aws",
+          "serviceAccountEmail": "jwi-execution-prod@my-gcp-project.iam.gserviceaccount.com"
+        },
+        "inputDefinition": {},
+        "outputDefinition": {}
+      }
+    }
+  }
+}
