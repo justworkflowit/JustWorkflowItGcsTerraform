@@ -167,10 +167,13 @@ resource "terraform_data" "deploy_trigger" {
   provisioner "local-exec" {
     command = <<-EOT
       gcloud functions call ${google_cloudfunctions2_function.definition_deployer.name} \
+        --gen2 \
         --project=${var.project_id} \
         --region=${var.region} \
         --data='{"requestType":"Create","timestamp":"${timestamp()}"}'
     EOT
+
+    on_failure = continue
   }
 
   depends_on = [
