@@ -231,6 +231,16 @@ resource "google_service_account_iam_binding" "workload_identity" {
   ]
 }
 
+# Allow federated identities to generate ID tokens for Cloud Run (Gen2 Cloud Functions) invocation
+resource "google_service_account_iam_binding" "token_creator" {
+  service_account_id = google_service_account.execution.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+
+  members = [
+    "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.justworkflowit.name}/*"
+  ]
+}
+
 # Conditional role: Cloud Function invoker
 # Gen2 Cloud Functions are backed by Cloud Run — use roles/run.invoker on the
 # Cloud Run service, not roles/cloudfunctions.invoker on the function resource.
