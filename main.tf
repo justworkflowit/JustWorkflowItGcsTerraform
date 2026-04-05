@@ -232,14 +232,16 @@ resource "google_service_account_iam_binding" "workload_identity" {
 }
 
 # Conditional role: Cloud Function invoker
-resource "google_cloudfunctions2_function_iam_member" "invoker" {
+# Gen2 Cloud Functions are backed by Cloud Run — use roles/run.invoker on the
+# Cloud Run service, not roles/cloudfunctions.invoker on the function resource.
+resource "google_cloud_run_service_iam_member" "invoker" {
   for_each = toset(var.cloud_function_urls)
 
-  project        = var.project_id
-  location       = var.region
-  cloud_function = each.value
-  role           = "roles/cloudfunctions.invoker"
-  member         = "serviceAccount:${google_service_account.execution.email}"
+  project  = var.project_id
+  location = var.region
+  service  = each.value
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${google_service_account.execution.email}"
 }
 
 # Conditional role: Pub/Sub publisher
