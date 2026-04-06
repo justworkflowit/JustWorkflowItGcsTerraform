@@ -231,10 +231,12 @@ resource "google_service_account_iam_binding" "workload_identity" {
   ]
 }
 
-# Allow federated identities to generate ID tokens for Cloud Run (Gen2 Cloud Functions) invocation
-resource "google_service_account_iam_binding" "token_creator" {
+# Allow federated identities to generate ID tokens for Cloud Run (Gen2 Cloud Functions) invocation.
+# serviceAccountOpenIdTokenCreator grants iam.serviceAccounts.getOpenIdToken which is required
+# by Impersonated.fetchIdToken(). serviceAccountTokenCreator does NOT include this permission.
+resource "google_service_account_iam_binding" "id_token_creator" {
   service_account_id = google_service_account.execution.name
-  role               = "roles/iam.serviceAccountTokenCreator"
+  role               = "roles/iam.serviceAccountOpenIdTokenCreator"
 
   members = [
     "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.justworkflowit.name}/*"
