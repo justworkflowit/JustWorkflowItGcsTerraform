@@ -1,5 +1,5 @@
 {
-  "name": "@justworkflowit/terraform-gcs",
+  "name": "@justworkflowit/terraform-gcp",
   "version": "0.0.1",
   "description": "JustWorkflowIt GCP Terraform module - sets up Workload Identity Federation, Cloud Function execution, and workflow definition deployment",
   "main": "main.tf",
@@ -15,7 +15,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/justworkflowit/JustWorkflowItGcsTerraform.git"
+    "url": "git+https://github.com/justworkflowit/JustWorkflowItGcpTerraform.git"
   },
   "keywords": ["terraform", "gcp", "justworkflowit", "workflow", "cloud-functions"],
   "author": "JustWorkflowIt",
